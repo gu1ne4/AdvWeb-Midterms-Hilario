@@ -499,6 +499,10 @@ function App() {
 
         </div>
       )}
+
+      <footer className="bg-black text-white text-center text-sm py-3">
+        Set A - Margaret Anne Hilario
+      </footer>
     </>
   );
 }

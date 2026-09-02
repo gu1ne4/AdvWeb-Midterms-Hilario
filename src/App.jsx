@@ -1,4 +1,9 @@
 import { useState } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import "./index.css";
 import spotifyLogo from "./assets/spotify-logo.webp";
 
@@ -17,6 +22,13 @@ function App() {
   const [labelError, setLabelError] = useState("");
   const [roleError, setRoleError] = useState("");
 
+  // PHASE 2
+  const [tracks, setTracks] = useState([]);
+  const [showTable, setShowTable] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const tracksPerPage = 3;
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -29,7 +41,7 @@ function App() {
 
     let valid = true;
 
-  
+ 
     if (title === "") {
       setTitleError("Track title is required.");
       valid = false;
@@ -38,19 +50,19 @@ function App() {
       valid = false;
     }
 
-  
+    
     if (genre === "") {
       setGenreError("Genre is required.");
       valid = false;
     }
 
- 
+
     if (artist === "") {
       setArtistError("Artist name is required.");
       valid = false;
     }
 
-  
+
     if (rating === "") {
       setRatingError("Rating is required.");
       valid = false;
@@ -73,11 +85,78 @@ function App() {
 
     if (valid) {
       alert("Track registered successfully!");
+
+
+      const newTrack = {
+        id: tracks.length + 1,
+        title: title,
+        genre: genre,
+        artist: artist,
+        rating: rating,
+        label: label,
+        role: role,
+      };
+
+      setTracks([...tracks, newTrack]);
+      setShowTable(true);
+      setPage(1);
+      setTitle("");
+      setGenre("");
+      setArtist("");
+      setRating("");
+      setLabel("");
+      setRole("");
     }
   };
 
+
+  const columns = [
+    {
+      header: "Track Title",
+      accessorKey: "title",
+    },
+    {
+      header: "Genre",
+      accessorKey: "genre",
+    },
+    {
+      header: "Artist",
+      accessorKey: "artist",
+    },
+    {
+      header: "Rating",
+      accessorKey: "rating",
+    },
+    {
+      header: "Record Label",
+      accessorKey: "label",
+    },
+    {
+      header: "Role",
+      accessorKey: "role",
+    },
+  ];
+
+  
+  const start = (page - 1) * tracksPerPage;
+  const end = start + tracksPerPage;
+
+  const currentTracks = tracks.slice(start, end);
+
+  const totalPages = Math.ceil(
+    tracks.length / tracksPerPage
+  );
+
+
+  const table = useReactTable({
+    data: currentTracks,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <>
+
       <nav className="bg-black text-white px-8 py-4 flex items-center shadow-lg">
         <div className="flex items-center gap-3">
           <img
@@ -93,169 +172,277 @@ function App() {
       </nav>
 
 
-      <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-black text-white flex items-center justify-center px-4 py-10">
+      {!showTable && (
+        <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-black text-white flex items-center justify-center px-4 py-10">
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-zinc-800 w-full max-w-lg rounded-2xl p-8 shadow-xl"
-        >
-          <h1 className="text-3xl font-bold text-green-400 text-center mb-8">
-            Register a Track
-          </h1>
-
-
-          <div className="mb-5">
-            <label className="block mb-2">
-              Track Title
-            </label>
-
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter track title"
-              className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            />
-
-            {titleError && (
-              <p className="text-red-400 text-sm mt-1">
-                {titleError}
-              </p>
-            )}
-          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-zinc-800 w-full max-w-lg rounded-2xl p-8 shadow-xl"
+          >
+            <h1 className="text-3xl font-bold text-green-400 text-center mb-8">
+              Register a Track
+            </h1>
 
 
-          <div className="mb-5">
-            <label className="block mb-2">
-              Genre
-            </label>
-
-            <select
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Select a genre</option>
-              <option value="Pop">Pop</option>
-              <option value="Rock">Rock</option>
-              <option value="Indie">Indie</option>
-              <option value="Jazz">Jazz</option>
-            </select>
-
-            {genreError && (
-              <p className="text-red-400 text-sm mt-1">
-                {genreError}
-              </p>
-            )}
-          </div>
-
-
-          <div className="mb-5">
-            <label className="block mb-2">
-              Artist Name
-            </label>
-
-            <input
-              type="text"
-              value={artist}
-              onChange={(e) => setArtist(e.target.value)}
-              placeholder="Enter artist name"
-              className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            />
-
-            {artistError && (
-              <p className="text-red-400 text-sm mt-1">
-                {artistError}
-              </p>
-            )}
-          </div>
-
-
-          <div className="mb-5">
-            <label className="block mb-2">
-              Rating (1–100)
-            </label>
-
-            <input
-              type="number"
-              value={rating}
-              onChange={(e) => setRating(e.target.value)}
-              placeholder="Enter rating"
-              className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            />
-
-            {ratingError && (
-              <p className="text-red-400 text-sm mt-1">
-                {ratingError}
-              </p>
-            )}
-          </div>
-
-
-          <div className="mb-5">
-            <label className="block mb-2">
-              Record Label Name
-            </label>
-
-            <input
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="Enter record label"
-              className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-            />
-
-            {labelError && (
-              <p className="text-red-400 text-sm mt-1">
-                {labelError}
-              </p>
-            )}
-          </div>
-
-
-          <div className="mb-6">
-            <label className="block mb-2">
-              User Role
-            </label>
-
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="role"
-                  value="Creator"
-                  onChange={(e) => setRole(e.target.value)}
-                />
-                Creator
+            <div className="mb-5">
+              <label className="block mb-2">
+                Track Title
               </label>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="role"
-                  value="Listener"
-                  onChange={(e) => setRole(e.target.value)}
-                />
-                Listener
-              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter track title"
+                className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {titleError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {titleError}
+                </p>
+              )}
             </div>
 
-            {roleError && (
-              <p className="text-red-400 text-sm mt-1">
-                {roleError}
-              </p>
-            )}
+          
+            <div className="mb-5">
+              <label className="block mb-2">
+                Genre
+              </label>
+
+              <select
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
+                className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Select a genre</option>
+                <option value="Pop">Pop</option>
+                <option value="Rock">Rock</option>
+                <option value="Indie">Indie</option>
+                <option value="Jazz">Jazz</option>
+              </select>
+
+              {genreError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {genreError}
+                </p>
+              )}
+            </div>
+
+     
+            <div className="mb-5">
+              <label className="block mb-2">
+                Artist Name
+              </label>
+
+              <input
+                type="text"
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="Enter artist name"
+                className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {artistError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {artistError}
+                </p>
+              )}
+            </div>
+
+            
+            <div className="mb-5">
+              <label className="block mb-2">
+                Rating (1–100)
+              </label>
+
+              <input
+                type="number"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                placeholder="Enter rating"
+                className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {ratingError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {ratingError}
+                </p>
+              )}
+            </div>
+
+            
+            <div className="mb-5">
+              <label className="block mb-2">
+                Record Label Name
+              </label>
+
+              <input
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="Enter record label"
+                className="w-full bg-zinc-700 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {labelError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {labelError}
+                </p>
+              )}
+            </div>
+
+            
+            <div className="mb-6">
+              <label className="block mb-2">
+                User Role
+              </label>
+
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="Creator"
+                    onChange={(e) => setRole(e.target.value)}
+                  />
+                  Creator
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="Listener"
+                    onChange={(e) => setRole(e.target.value)}
+                  />
+                  Listener
+                </label>
+              </div>
+
+              {roleError && (
+                <p className="text-red-400 text-sm mt-1">
+                  {roleError}
+                </p>
+              )}
+            </div>
+
+         
+            <button
+              type="submit"
+              className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-full"
+            >
+              Register Track
+            </button>
+          </form>
+        </div>
+      )}
+
+
+      {showTable && (
+        <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-black to-black text-white px-8 py-10">
+
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-green-400">
+              Track Registry
+            </h1>
+
+            <button
+              onClick={() => setShowTable(false)}
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-full"
+            >
+              Add Track
+            </button>
           </div>
 
+          {/* Table */}
+          <div className="overflow-x-auto bg-zinc-800 rounded-xl">
 
-          <button
-            type="submit"
-            className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-full"
-          >
-            Register Track
-          </button>
-        </form>
-      </div>
+            <table className="w-full">
+              <thead className="bg-zinc-700">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="text-left p-4"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </th>
+                    ))}
+
+                  </tr>
+                ))}
+              </thead>
+
+              <tbody>
+                {currentTracks.map((track) => (
+                  <tr
+                    key={track.id}
+                    className={`border-t border-zinc-700 hover:bg-zinc-700 cursor-pointer`}
+                  >
+                    <td className="p-4">
+                      {track.title}
+                    </td>
+
+                    <td className="p-4">
+                      {track.genre}
+                    </td>
+
+                    <td className="p-4">
+                      {track.artist}
+                    </td>
+
+                    <td className="p-4">
+                      {track.rating}
+                    </td>
+
+                    <td className="p-4">
+                      {track.label}
+                    </td>
+
+                    <td className="p-4">
+                      {track.role}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          </div>
+   
+          <div className="flex justify-between items-center mt-6">
+
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="bg-zinc-700 px-5 py-2 rounded-lg disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            <p>
+              Page {page} of {totalPages}
+            </p>
+
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page === totalPages}
+              className="bg-green-500 hover:bg-green-600 text-black px-5 py-2 rounded-lg font-bold disabled:opacity-40"
+            >
+              Next
+            </button>
+
+          </div>
+
+        </div>
+      )}
     </>
   );
 }

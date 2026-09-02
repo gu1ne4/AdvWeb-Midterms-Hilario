@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -22,10 +22,17 @@ function App() {
   const [labelError, setLabelError] = useState("");
   const [roleError, setRoleError] = useState("");
 
-  // PHASE 2
   const [tracks, setTracks] = useState([]);
   const [showTable, setShowTable] = useState(false);
   const [page, setPage] = useState(1);
+
+  const [genreFilter, setGenreFilter] = useState("All");
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [activeTrack, setActiveTrack] = useState(null);
+
+  useEffect(() => {
+    setActiveTrack(selectedTrack);
+  }, [selectedTrack]);
 
   const tracksPerPage = 3;
 
@@ -138,13 +145,17 @@ function App() {
   ];
 
   
+  const filteredTracks = genreFilter === "All"
+    ? tracks
+    : tracks.filter((track) => track.genre === genreFilter);
+
   const start = (page - 1) * tracksPerPage;
   const end = start + tracksPerPage;
 
-  const currentTracks = tracks.slice(start, end);
+  const currentTracks = filteredTracks.slice(start, end);
 
   const totalPages = Math.ceil(
-    tracks.length / tracksPerPage
+    filteredTracks.length / tracksPerPage
   );
 
 
@@ -355,7 +366,25 @@ function App() {
             </button>
           </div>
 
-          {/* Table */}
+          <div className="mb-4">
+            <label className="mr-3">Filter by Genre:</label>
+            <select
+              value={genreFilter}
+              onChange={(e) => {
+                setGenreFilter(e.target.value);
+                setPage(1);
+              }}
+              className="bg-zinc-700 p-2 rounded-lg"
+            >
+              <option value="All">All Genres</option>
+              <option value="Pop">Pop</option>
+              <option value="Rock">Rock</option>
+              <option value="Indie">Indie</option>
+              <option value="Jazz">Jazz</option>
+            </select>
+          </div>
+
+
           <div className="overflow-x-auto bg-zinc-800 rounded-xl">
 
             <table className="w-full">
@@ -385,7 +414,10 @@ function App() {
                 {currentTracks.map((track) => (
                   <tr
                     key={track.id}
-                    className={`border-t border-zinc-700 hover:bg-zinc-700 cursor-pointer`}
+                    onClick={() => setSelectedTrack(track)}
+                    className={`border-t border-zinc-700 hover:bg-zinc-700 cursor-pointer ${
+                      activeTrack?.id === track.id ? "bg-zinc-700" : ""
+                    }`}
                   >
                     <td className="p-4">
                       {track.title}
@@ -416,6 +448,30 @@ function App() {
             </table>
 
           </div>
+
+          {activeTrack && (
+            <div className="bg-zinc-800 rounded-xl p-6 mt-6">
+              <h2 className="text-2xl font-bold text-green-400 mb-4">
+                {activeTrack.title}
+              </h2>
+              <p><strong>Title:</strong> {activeTrack.title}</p>
+              <p><strong>Genre:</strong> {activeTrack.genre}</p>
+              <p><strong>Artist:</strong> {activeTrack.artist}</p>
+              <p><strong>Rating:</strong> {activeTrack.rating}</p>
+              <p><strong>Record Label:</strong> {activeTrack.label}</p>
+              <p className="mt-3">
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    activeTrack.role === "Creator"
+                      ? "bg-green-500 text-black"
+                      : "bg-blue-500 text-white"
+                  }`}
+                >
+                  {activeTrack.role}
+                </span>
+              </p>
+            </div>
+          )}
    
           <div className="flex justify-between items-center mt-6">
 
